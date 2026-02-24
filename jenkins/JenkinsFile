@@ -30,12 +30,25 @@ pipeline {
                 sh 'npm test'
                }
             }
-            post {
+    }
+    stage('Lanuch Application') {
+        agent {
+            docker {
+                image 'docker:27.5.1'
+                args '--user root -v /var/run/docker.sock:/var/run/docker.sock'
+                reuseNode true
+            }
+        }
+        steps {
+            sh 'docker compose --build -d'
+        }
+    
+    post {
                 always {
+                    cleanWs()
                     junit 'bugtracker-frontend/test-results.xml'
                 }
             }
-    }
 
     }
 
