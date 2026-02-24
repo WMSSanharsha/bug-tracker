@@ -11,11 +11,12 @@ pipeline {
                 }
             }
             steps {
-               dir('bugtracker-backend') {
-                sh 'go test -v ./...'
-               }
+                dir('bugtracker-backend') {
+                    sh 'go test -v ./...'
+                }
             }
         }
+
         stage('Unit Tests - Frontend') {
             agent {
                 docker {
@@ -25,31 +26,31 @@ pipeline {
                 }
             }
             steps {
-               dir('bugtracker-frontend') {
-                sh 'npm ci'
-                sh 'npm test'
-               }
-            }
-    }
-    stage('Launch Application') {
-        agent {
-            docker {
-                image 'docker:27.5.1'
-                args '--user root -v /var/run/docker.sock:/var/run/docker.sock'
-                reuseNode true
-            }
-        }
-        steps {
-            sh 'docker compose --build -d'
-        }
-    }
-    post {
-                always {
-                    cleanWs()
-                    junit 'bugtracker-frontend/test-results.xml'
+                dir('bugtracker-frontend') {
+                    sh 'npm ci'
+                    sh 'npm test'
                 }
             }
+        }
 
+        stage('Launch Application') {
+            agent {
+                docker {
+                    image 'docker:27.5.1'
+                    args '--user root -v /var/run/docker.sock:/var/run/docker.sock'
+                    reuseNode true
+                }
+            }
+            steps {
+                sh 'docker compose up --build -d'
+            }
+        }
     }
 
+    post {
+        always {
+            cleanWs()
+            junit 'bugtracker-frontend/test-results.xml'
+        }
+    }
 }
